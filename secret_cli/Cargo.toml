@@ -1,0 +1,47 @@
+[package]
+name = "secret_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# CLI framework
+clap = { version = "4.5", features = ["derive"] }
+
+# Terminal UI
+ratatui = "0.29.0"
+crossterm = "0.29"
+ 
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Cryptography
+aes-gcm = "0.10"
+pbkdf2 = "0.12"
+sha2 = "0.10"
+rand = "0.8.2"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0.17"
+
+# Security
+zeroize = "1.7"
+secrecy = "0.10.3"
+
+# File operations and utilities
+dirs = "6.0"
+colored = "3.0.0"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+base64 = "0.22.1"
+shellexpand = "3.1"
+rpassword = "7.3"
+
+[dev-dependencies]
+tempfile = "3.8"
