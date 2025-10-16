@@ -21,6 +21,7 @@ pub struct SecretApp {
     config: Config,
     crypto: Option<CryptoManager>,
     store: Option<SecretStore>,
+    salt: Option<[u8; 16]>, // Store the salt for subsequent save operations
     audit_logger: AuditLogger,
     backup_manager: BackupManager,
     health_checker: HealthChecker,
@@ -39,6 +40,7 @@ impl SecretApp {
             config,
             crypto: None,
             store: None,
+            salt: None,
             audit_logger,
             backup_manager,
             health_checker,
@@ -376,10 +378,12 @@ impl SecretApp {
         }
 
         let password = self.prompt_for_password("Enter master password")?;
-        let encrypted_data = fs::read(store_path)?;
+        let encrypted_store_data = fs::read(store_path)?;
 
-        // Try to derive key and decrypt
-        let salt = MasterKey::generate_salt(); // This should be stored with the encrypted data
+        // Extract salt from stored data
+        let (salt, encrypted_data) = CryptoManager::extract_salt_from_store(&encrypted_store_data)?;
+        
+        // Derive key using extracted salt
         let master_key = MasterKey::from_password(&password, &salt, self.config.encryption_iterations);
         let crypto = CryptoManager::new(master_key);
 
@@ -389,6 +393,7 @@ impl SecretApp {
                 let store: SecretStore = serde_json::from_str(&json_str)?;
                 self.crypto = Some(crypto);
                 self.store = Some(store);
+                self.salt = Some(salt); // Store the salt for future saves
                 self.audit_logger.log_success(AuditOperation::Login)?;
                 Ok(())
             }
@@ -400,9 +405,9 @@ impl SecretApp {
     }
 
     fn save_store(&self) -> Result<()> {
-        if let (Some(crypto), Some(store)) = (&self.crypto, &self.store) {
+        if let (Some(crypto), Some(store), Some(salt)) = (&self.crypto, &self.store, &self.salt) {
             let json_data = serde_json::to_string_pretty(store)?;
-            let encrypted_data = crypto.encrypt(json_data.as_bytes())?;
+            let encrypted_data = crypto.encrypt_with_salt(json_data.as_bytes(), salt)?;
             
             let store_path = shellexpand::tilde(&self.config.store_path);
             let store_path = Path::new(store_path.as_ref());
@@ -607,14 +612,15 @@ impl SecretApp {
         // Create empty store
         let store = SecretStore::new();
         let json_data = serde_json::to_string_pretty(&store)?;
-        let encrypted_data = crypto.encrypt(json_data.as_bytes())?;
+        let encrypted_data = crypto.encrypt_with_salt(json_data.as_bytes(), &salt)?;
 
-        // Save encrypted store
+        // Save encrypted store (includes salt)
         fs::write(path, encrypted_data)?;
 
         // Update app state
         self.crypto = Some(crypto);
         self.store = Some(store);
+        self.salt = Some(salt); // Store the salt for future saves
 
         println!("{}", "Secret store initialized successfully!".green());
         Ok(())

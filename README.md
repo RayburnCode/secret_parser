@@ -1,6 +1,6 @@
 <!-- @format -->
 
-# Secred CLI - A Secure Terminal-based Secret Manager
+# secret CLI - A Secure Terminal-based Secret Manager
 
 A lightweight, secure CLI secret manager built in Rust with an interactive Terminal UI (TUI) for Ubuntu Server VPS environments and beyond.
 
@@ -49,9 +49,9 @@ A lightweight, secure CLI secret manager built in Rust with an interactive Termi
 
 ```bash
 git clone https://github.com/RayburnCode/secret_parser.git
-cd secret_parser/secred_cli
+cd secret_parser/secret_cli
 cargo build --release
-sudo cp target/release/secred_cli /usr/local/bin/secred
+sudo cp target/release/secret_cli /usr/local/bin/secret
 ```
 
 ## Quick Start
@@ -59,27 +59,27 @@ sudo cp target/release/secred_cli /usr/local/bin/secred
 ### Initialize a New Secret Store
 
 ```bash
-secred init
+secret init
 # Follow the prompts to set your master password
 ```
 
 ### Add Your First Secret
 
 ```bash
-secred add database-password --category "Database" --description "Production DB password"
+secret add database-password --category "Database" --description "Production DB password"
 # Enter the secret value when prompted
 ```
 
 ### List All Secrets
 
 ```bash
-secred list
+secret list
 ```
 
 ### Launch Interactive TUI
 
 ```bash
-secred ui
+secret ui
 ```
 
 ## Usage Examples
@@ -89,7 +89,7 @@ secred ui
 #### Add a secret with metadata
 
 ```bash
-secred add api-key \
+secret add api-key \
   --category "API" \
   --description "Stripe API key for payments" \
   --tags "stripe,payment,production" \
@@ -99,28 +99,28 @@ secred add api-key \
 #### Generate a strong password
 
 ```bash
-secred add user-password --generate --length 32
+secret add user-password --generate --length 32
 ```
 
 #### Retrieve a secret
 
 ```bash
-secred get api-key --full  # Show all metadata
-secred get api-key --copy  # Copy to clipboard (requires clipboard support)
+secret get api-key --full  # Show all metadata
+secret get api-key --copy  # Copy to clipboard (requires clipboard support)
 ```
 
 #### Update a secret
 
 ```bash
-secred update api-key --value "new-api-key-value" --category "Payment"
+secret update api-key --value "new-api-key-value" --category "Payment"
 ```
 
 #### Search secrets
 
 ```bash
-secred search "stripe"        # Search by name, category, description, or tags
-secred list --category "API"  # Filter by category
-secred list --expired         # Show only expired secrets
+secret search "stripe"        # Search by name, category, description, or tags
+secret list --category "API"  # Filter by category
+secret list --expired         # Show only expired secrets
 ```
 
 ### Advanced Operations
@@ -128,42 +128,42 @@ secred list --expired         # Show only expired secrets
 #### Health Monitoring
 
 ```bash
-secred health check                    # Comprehensive health report
-secred health expired                  # List expired secrets
-secred health weak                     # Find weak passwords
-secred health duplicates               # Find duplicate secret values
+secret health check                    # Comprehensive health report
+secret health expired                  # List expired secrets
+secret health weak                     # Find weak passwords
+secret health duplicates               # Find duplicate secret values
 ```
 
 #### Secret Rotation
 
 ```bash
-secred rotate list                     # Show rotation status
-secred rotate secret api-key           # Rotate a specific secret
-secred rotate policy api-key --days 90 --auto  # Set rotation policy
+secret rotate list                     # Show rotation status
+secret rotate secret api-key           # Rotate a specific secret
+secret rotate policy api-key --days 90 --auto  # Set rotation policy
 ```
 
 #### Backup & Recovery
 
 ```bash
-secred backup create                   # Manual backup
-secred backup schedule --interval 6    # Auto-backup every 6 hours
-secred backup restore backup-file.bak  # Restore from backup
+secret backup create                   # Manual backup
+secret backup schedule --interval 6    # Auto-backup every 6 hours
+secret backup restore backup-file.bak  # Restore from backup
 ```
 
 #### Import/Export
 
 ```bash
-secred export secrets.json --format json --encrypt
-secred import secrets.json --format json --merge
-secred export secrets.csv --format csv --metadata
+secret export secrets.json --format json --encrypt
+secret import secrets.json --format json --merge
+secret export secrets.csv --format csv --metadata
 ```
 
 #### Audit Logging
 
 ```bash
-secred audit show --limit 100         # Show recent audit entries
-secred audit show --failed            # Show only failed operations
-secred audit export audit.json        # Export audit log
+secret audit show --limit 100         # Show recent audit entries
+secret audit show --failed            # Show only failed operations
+secret audit export audit.json        # Export audit log
 ```
 
 ## Terminal UI (TUI)
@@ -171,7 +171,7 @@ secred audit export audit.json        # Export audit log
 Launch the interactive Terminal UI with:
 
 ```bash
-secred ui
+secret ui
 ```
 
 ### TUI Navigation
@@ -198,17 +198,17 @@ secred ui
 
 ### Default Configuration
 
-Secred creates a configuration file at `~/.config/secred/config.json`:
+secret creates a configuration file at `~/.config/secret/config.json`:
 
 ```json
 {
-  "store_path": "~/.secred/store.enc",
-  "backup_path": "~/.secred/backups/",
+  "store_path": "~/.secret/store.enc",
+  "backup_path": "~/.secret/backups/",
   "auto_backup": true,
   "backup_interval_hours": 6,
   "max_backups": 10,
   "audit_log_enabled": true,
-  "audit_log_path": "~/.secred/audit.log",
+  "audit_log_path": "~/.secret/audit.log",
   "encryption_iterations": 100000
 }
 ```
@@ -254,10 +254,10 @@ Secred creates a configuration file at `~/.config/secred/config.json`:
 
 ```bash
 # Mount secrets into containers
-docker run -v ~/.secred:/secrets myapp
+docker run -v ~/.secret:/secrets myapp
 
 # Use init containers to fetch secrets
-docker run --rm -v secrets:/shared secred get api-key > /shared/api-key
+docker run --rm -v secrets:/shared secret get api-key > /shared/api-key
 ```
 
 ## Contributing

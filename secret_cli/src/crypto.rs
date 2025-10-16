@@ -66,6 +66,25 @@ impl CryptoManager {
         Ok(result)
     }
 
+    /// Encrypt plaintext data with salt prepended for store initialization
+    pub fn encrypt_with_salt(&self, plaintext: &[u8], salt: &[u8; SALT_SIZE]) -> Result<Vec<u8>> {
+        let cipher = Aes256Gcm::new_from_slice(self.master_key.as_bytes())
+            .map_err(|e| anyhow!("Failed to create cipher: {}", e))?;
+
+        let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+        let ciphertext = cipher
+            .encrypt(&nonce, plaintext)
+            .map_err(|e| anyhow!("Encryption failed: {}", e))?;
+
+        // Format: SALT + NONCE + CIPHERTEXT
+        let mut result = Vec::with_capacity(SALT_SIZE + NONCE_SIZE + ciphertext.len());
+        result.extend_from_slice(salt);
+        result.extend_from_slice(&nonce);
+        result.extend_from_slice(&ciphertext);
+
+        Ok(result)
+    }
+
     /// Decrypt ciphertext data
     pub fn decrypt(&self, encrypted_data: &[u8]) -> Result<Vec<u8>> {
         if encrypted_data.len() < NONCE_SIZE {
@@ -83,6 +102,20 @@ impl CryptoManager {
             .map_err(|e| anyhow!("Decryption failed: {}", e))?;
 
         Ok(plaintext)
+    }
+
+    /// Extract salt from encrypted store data and return (salt, remaining_encrypted_data)
+    pub fn extract_salt_from_store(encrypted_store_data: &[u8]) -> Result<([u8; SALT_SIZE], Vec<u8>)> {
+        if encrypted_store_data.len() < SALT_SIZE + NONCE_SIZE {
+            return Err(anyhow!("Invalid store data: too short"));
+        }
+
+        let mut salt = [0u8; SALT_SIZE];
+        salt.copy_from_slice(&encrypted_store_data[..SALT_SIZE]);
+        
+        let remaining_data = encrypted_store_data[SALT_SIZE..].to_vec();
+        
+        Ok((salt, remaining_data))
     }
 
     /// Encrypt a string and return base64-encoded result
